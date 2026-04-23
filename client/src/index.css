@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-gray-200;
+  }
+  
+  body {
+    @apply bg-white text-black;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-full font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+  
+  .btn-primary {
+    @apply btn bg-black text-white hover:bg-gray-800 focus:ring-black;
+  }
+  
+  .btn-secondary {
+    @apply btn bg-gray-100 text-black hover:bg-gray-200 focus:ring-gray-400;
+  }
+  
+  .btn-outline {
+    @apply btn border-2 border-black text-black hover:bg-black hover:text-white focus:ring-black;
+  }
+  
+  .input {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-full shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black bg-white transition-all duration-200;
+  }
+  
+  .card {
+    @apply bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200;
+  }
+  
+  .post-card {
+    @apply bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200;
+  }
+  
+  .container {
+    @apply max-w-6xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .gradient-mono {
+    @apply bg-gradient-to-r from-gray-100 to-gray-200;
+  }
+}
