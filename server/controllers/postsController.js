@@ -36,14 +36,14 @@ const createPost = async (req, res, next) => {
     await post.save();
     await post.populate('userId', 'username profilePic');
 
-    // Generate optimized URLs for media
+    // Generate optimized URLs for media (base64 uses same URL)
     const optimizedMedia = post.media.map(item => ({
       ...item.toObject(),
       optimizedUrls: item.type === 'image' ? {
-        thumbnail: optimizedUrl(item.url, { width: 200, height: 200, crop: 'thumb' }),
-        small: optimizedUrl(item.url, { width: 400, height: 400, crop: 'fill' }),
-        medium: optimizedUrl(item.url, { width: 800, height: 800, crop: 'fill' }),
-        large: optimizedUrl(item.url, { width: 1200, height: 1200, crop: 'fill' })
+        thumbnail: item.url, // For base64, use same URL
+        small: item.url,
+        medium: item.url,
+        large: item.url
       } : null
     }));
 
@@ -222,10 +222,10 @@ const getFeed = async (req, res, next) => {
       postObj.media = post.media.map(item => ({
         ...item.toObject(),
         optimizedUrls: item.type === 'image' ? {
-          thumbnail: optimizedUrl(item.url, { width: 200, height: 200, crop: 'thumb' }),
-          small: optimizedUrl(item.url, { width: 400, height: 400, crop: 'fill' }),
-          medium: optimizedUrl(item.url, { width: 800, height: 800, crop: 'fill' }),
-          large: optimizedUrl(item.url, { width: 1200, height: 1200, crop: 'fill' })
+          thumbnail: item.url, // For base64, use same URL
+          small: item.url,
+          medium: item.url,
+          large: item.url
         } : null
       }));
       return postObj;
@@ -307,10 +307,10 @@ const getAllPosts = async (req, res, next) => {
       postObj.media = post.media.map(item => ({
         ...item.toObject(),
         optimizedUrls: item.type === 'image' ? {
-          thumbnail: optimizedUrl(item.url, { width: 200, height: 200, crop: 'thumb' }),
-          small: optimizedUrl(item.url, { width: 400, height: 400, crop: 'fill' }),
-          medium: optimizedUrl(item.url, { width: 800, height: 800, crop: 'fill' }),
-          large: optimizedUrl(item.url, { width: 1200, height: 1200, crop: 'fill' })
+          thumbnail: item.url, // For base64, use same URL
+          small: item.url,
+          medium: item.url,
+          large: item.url
         } : null
       }));
       // Add counts that are missing from populate

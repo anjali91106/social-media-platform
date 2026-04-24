@@ -12,7 +12,7 @@ class SocketService {
       return this.socket;
     }
 
-    const socketUrl = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+    const socketUrl = import.meta.env.VITE_SOCKET_URL || 'https://social-media-platform-xw3z.onrender.com';
     
     this.socket = io(socketUrl, {
       auth: {
