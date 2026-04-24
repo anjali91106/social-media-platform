@@ -83,7 +83,7 @@ const HomeFeed = () => {
         }
       });
     }
-  }, [posts.length, user]);
+  }, [user]);
 
   useEffect(() => {
     fetchPosts();
@@ -119,7 +119,13 @@ const HomeFeed = () => {
     }
   }, [user]);
 
-  
+  // Handle tab changes to refresh posts
+  useEffect(() => {
+    setPage(1);
+    setPosts([]);
+    fetchPosts(1, false);
+  }, [activeTab]);
+
   const handleLike = async (postId) => {
     try {
       // Check if already liked

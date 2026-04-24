@@ -36,15 +36,9 @@ const createPost = async (req, res, next) => {
     await post.save();
     await post.populate('userId', 'username profilePic');
 
-    // Generate optimized URLs for media (base64 uses same URL)
+    // For base64 images, just use the original media, no need for optimizedUrls
     const optimizedMedia = post.media.map(item => ({
-      ...item.toObject(),
-      optimizedUrls: item.type === 'image' ? {
-        thumbnail: item.url, // For base64, use same URL
-        small: item.url,
-        medium: item.url,
-        large: item.url
-      } : null
+      ...item.toObject()
     }));
 
     res.status(201).json({
@@ -184,7 +178,7 @@ const unlikePost = async (req, res, next) => {
 const getFeed = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = Math.min(parseInt(req.query.limit) || 5, 10); // Max 10 posts, default 5
     const skip = (page - 1) * limit;
 
     const currentUser = await User.findById(req.user._id).populate('following');
@@ -219,14 +213,9 @@ const getFeed = async (req, res, next) => {
 
     const postsWithOptimizedMedia = posts.map(post => {
       const postObj = post.toObject();
+      // For base64 images, just keep the original URL, no need for optimizedUrls
       postObj.media = post.media.map(item => ({
-        ...item.toObject(),
-        optimizedUrls: item.type === 'image' ? {
-          thumbnail: item.url, // For base64, use same URL
-          small: item.url,
-          medium: item.url,
-          large: item.url
-        } : null
+        ...item.toObject()
       }));
       return postObj;
     });
@@ -291,7 +280,7 @@ const updatePost = async (req, res, next) => {
 const getAllPosts = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = Math.min(parseInt(req.query.limit) || 5, 10); // Max 10 posts, default 5
     const skip = (page - 1) * limit;
 
     const posts = await Post.find()
@@ -304,14 +293,9 @@ const getAllPosts = async (req, res, next) => {
 
     const postsWithOptimizedMedia = posts.map(post => {
       const postObj = post.toObject();
+      // For base64 images, just keep the original URL, no need for optimizedUrls
       postObj.media = post.media.map(item => ({
-        ...item.toObject(),
-        optimizedUrls: item.type === 'image' ? {
-          thumbnail: item.url, // For base64, use same URL
-          small: item.url,
-          medium: item.url,
-          large: item.url
-        } : null
+        ...item.toObject()
       }));
       // Add counts that are missing from populate
       postObj.likeCount = post.likeCount || 0;
