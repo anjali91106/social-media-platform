@@ -31,7 +31,7 @@ const limiter = rateLimit({
 app.use(helmet());
 app.use(limiter);
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'https://social-media-platform-xw3z.onrender.com',
+  origin: process.env.FRONTEND_URL || 'https://social-media-platform-gules-ten.vercel.app',
   credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));
