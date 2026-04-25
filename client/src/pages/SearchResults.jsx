@@ -34,18 +34,18 @@ const SearchResults = () => {
       const users = usersResponse.data.data.users || [];
       const posts = postsResponse.data.data.posts || [];
 
-      // Combine results
+      // Combine results with null checks
       const combinedResults = [
-        ...users.map(user => ({
+        ...users.filter(user => user && user._id).map(user => ({
           id: user._id,
           type: 'user',
-          username: user.username,
-          profilePic: user.profilePic || 'https://ui-avatars.com/api/?name=' + user.username + '&background=random&color=fff&size=40',
+          username: user.username || 'unknown',
+          profilePic: user.profilePic || 'https://ui-avatars.com/api/?name=' + (user.username || 'user') + '&background=random&color=fff&size=40',
           followers: user.followersCount || 0,
           bio: user.bio || '',
           isFollowing: user.isFollowing || false
         })),
-        ...posts.map(post => ({
+        ...posts.filter(post => post && post._id).map(post => ({
           id: post._id,
           type: 'post',
           caption: post.caption || '',

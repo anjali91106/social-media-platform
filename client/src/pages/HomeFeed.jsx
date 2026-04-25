@@ -70,6 +70,7 @@ const HomeFeed = () => {
     if (posts.length > 0 && user) {
       posts.forEach(async (post) => {
         try {
+          if (!post.userId || !post.userId._id) return;
           const response = await usersAPI.getFollowStats(post.userId._id);
           const isFollowing = response.data.data.isFollowing;
           
@@ -188,14 +189,14 @@ const HomeFeed = () => {
   const handleFollowUser = async (userId) => {
     try {
       // Check if currently following to determine action
-      const post = posts.find(p => p.userId._id === userId);
+      const post = posts.find(p => p.userId && p.userId._id === userId);
       const isCurrentlyFollowing = post?.userId?.isFollowing;
 
       if (isCurrentlyFollowing) {
         // Unfollow
         await usersAPI.unfollowUser(userId);
         setPosts(prev => prev.map(p => 
-          p.userId._id === userId 
+          p.userId && p.userId._id === userId 
             ? { ...p, userId: { ...p.userId, isFollowing: false } }
             : p
         ));
@@ -204,22 +205,33 @@ const HomeFeed = () => {
         // Follow
         await usersAPI.followUser(userId);
         setPosts(prev => prev.map(p => 
-          p.userId._id === userId 
+          p.userId && p.userId._id === userId 
             ? { ...p, userId: { ...p.userId, isFollowing: true } }
             : p
         ));
         console.log('Followed user:', userId);
       }
     } catch (err) {
-      // Handle 400 errors gracefully (already following)
+      // Handle 400 errors gracefully (already following or not following)
       if (err.response?.status === 400) {
-        console.log('Already following this user');
-        // Update UI to show already following state
-        setPosts(prev => prev.map(post => 
-          post.userId._id === userId 
-            ? { ...post, userId: { ...post.userId, isFollowing: true } }
-            : post
-        ));
+        const errorMessage = err.response?.data?.message || '';
+        if (errorMessage.includes('Already following')) {
+          console.log('Already following this user');
+          // Update UI to show already following state
+          setPosts(prev => prev.map(post => 
+            post.userId && post.userId._id === userId 
+              ? { ...post, userId: { ...post.userId, isFollowing: true } }
+              : post
+          ));
+        } else if (errorMessage.includes('Not following')) {
+          console.log('Not following this user');
+          // Update UI to show not following state
+          setPosts(prev => prev.map(post => 
+            post.userId && post.userId._id === userId 
+              ? { ...post, userId: { ...post.userId, isFollowing: false } }
+              : post
+          ));
+        }
       } else {
         console.error('Failed to follow/unfollow user:', err);
       }

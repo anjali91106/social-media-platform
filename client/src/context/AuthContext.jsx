@@ -139,9 +139,12 @@ export const AuthProvider = ({ children }) => {
         dispatch({ type: AUTH_ACTIONS.LOAD_USER_SUCCESS, payload: { user } });
       } catch (error) {
         console.error('Failed to load user:', error);
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        dispatch({ type: AUTH_ACTIONS.LOAD_USER_FAILURE, payload: error.message });
+        // Clear tokens on 401 error
+        if (error.response?.status === 401) {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+        }
+        dispatch({ type: AUTH_ACTIONS.LOAD_USER_FAILURE, payload: 'Authentication failed' });
       }
     };
 

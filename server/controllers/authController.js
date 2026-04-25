@@ -144,7 +144,7 @@ const logout = async (req, res, next) => {
 
 const refreshToken = async (req, res, next) => {
   try {
-    const { refreshToken } = req.cookies;
+    const { refreshToken } = req.body;
     
     if (!refreshToken) {
       return res.status(401).json({
@@ -170,29 +170,17 @@ const refreshToken = async (req, res, next) => {
       user.refreshToken = newRefreshToken;
       await user.save();
 
-      res.cookie('refreshToken', newRefreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000
-      });
-
       res.status(200).json({
         success: true,
         message: 'Token refreshed successfully',
         data: {
-          accessToken: newAccessToken
+          accessToken: newAccessToken,
+          refreshToken: newRefreshToken
         }
       });
     } catch (jwtError) {
       user.refreshToken = undefined;
       await user.save();
-      
-      res.clearCookie('refreshToken', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict'
-      });
 
       return res.status(401).json({
         success: false,
