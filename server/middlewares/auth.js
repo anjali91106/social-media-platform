@@ -16,7 +16,7 @@ const authenticate = async (req, res, next) => {
     
     try {
       const decoded = verifyAccessToken(token);
-      const user = await User.findById(decoded.userId);
+      const user = await User.findById(decoded.userId).select('following');
       
       if (!user) {
         return res.status(401).json({

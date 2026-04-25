@@ -65,27 +65,6 @@ const HomeFeed = () => {
     fetchPosts();
   }, [activeTab]);
 
-  // Check follow status for all post authors
-  useEffect(() => {
-    if (posts.length > 0 && user) {
-      posts.forEach(async (post) => {
-        try {
-          if (!post.userId || !post.userId._id) return;
-          const response = await usersAPI.getFollowStats(post.userId._id);
-          const isFollowing = response.data.data.isFollowing;
-          
-          setPosts(prev => prev.map(p => 
-            p._id === post._id 
-              ? { ...p, userId: { ...p.userId, isFollowing } }
-              : p
-          ));
-        } catch (err) {
-          console.error('Failed to check follow status:', err);
-        }
-      });
-    }
-  }, [user]);
-
   useEffect(() => {
     fetchPosts();
     

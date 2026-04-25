@@ -217,6 +217,12 @@ const getFeed = async (req, res, next) => {
       postObj.media = post.media.map(item => ({
         ...item.toObject()
       }));
+      
+      // Add follow status for the post author
+      if (postObj.userId && req.user) {
+        postObj.userId.isFollowing = req.user.following.includes(postObj.userId._id);
+      }
+      
       return postObj;
     });
 
@@ -297,6 +303,12 @@ const getAllPosts = async (req, res, next) => {
       postObj.media = post.media.map(item => ({
         ...item.toObject()
       }));
+      
+      // Add follow status for the post author
+      if (postObj.userId && req.user) {
+        postObj.userId.isFollowing = req.user.following.includes(postObj.userId._id);
+      }
+      
       // Add counts that are missing from populate
       postObj.likeCount = post.likeCount || 0;
       postObj.commentCount = post.commentCount || 0;
