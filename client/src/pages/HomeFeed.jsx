@@ -65,10 +65,8 @@ const HomeFeed = () => {
     fetchPosts();
   }, [activeTab]);
 
-  useEffect(() => {
-    fetchPosts();
-    
-    // Connect to socket
+  // Socket connection and real-time updates
+useEffect(() => {
     if (user && user.accessToken) {
       socketService.connect(user.accessToken);
       
@@ -97,13 +95,17 @@ const HomeFeed = () => {
         socketService.offPostUnliked(handlePostUnliked);
       };
     }
-  }, [user]);
+  }, [user?.accessToken]);
 
-  // Handle tab changes to refresh posts
+  // Handle tab changes to refresh posts (only on actual tab change, not on mount)
   useEffect(() => {
-    setPage(1);
-    setPosts([]);
-    fetchPosts(1, false);
+    // Only reset if actually changing tabs, not on initial load
+    if (activeTab !== 'forYou') { // Only reset if not initial load
+      setPage(1);
+      setPosts([]);
+      setHasMore(true);
+      fetchPosts(1, false);
+    }
   }, [activeTab]);
 
   const handleLike = async (postId) => {
@@ -167,9 +169,10 @@ const HomeFeed = () => {
 
   const handleFollowUser = async (userId) => {
     try {
-      // Check if currently following to determine action
-      const post = posts.find(p => p.userId && p.userId._id === userId);
-      const isCurrentlyFollowing = post?.userId?.isFollowing;
+      // Check if currently following using user's following data
+      const isCurrentlyFollowing = user?.following?.some(followId => 
+        followId.toString() === userId
+      );
 
       if (isCurrentlyFollowing) {
         // Unfollow

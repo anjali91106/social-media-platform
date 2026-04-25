@@ -96,6 +96,12 @@ const login = async (req, res, next) => {
     user.refreshToken = refreshToken;
     await user.save();
 
+    // Get user with populated following data for the response
+    const userWithFollowing = await User.findById(user._id)
+      .select('username email profilePic bio followers following')
+      .populate('following', 'username profilePic')
+      .populate('followers', 'username profilePic');
+
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -107,7 +113,7 @@ const login = async (req, res, next) => {
       success: true,
       message: 'Login successful',
       data: {
-        user,
+        user: userWithFollowing,
         accessToken
       }
     });
@@ -194,7 +200,10 @@ const refreshToken = async (req, res, next) => {
 
 const getCurrentUser = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user._id).select('-password');
+    const user = await User.findById(req.user._id)
+      .select('-password')
+      .populate('following', 'username profilePic')
+      .populate('followers', 'username profilePic');
     
     if (!user) {
       return res.status(404).json({

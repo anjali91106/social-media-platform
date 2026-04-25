@@ -16,7 +16,9 @@ const authenticate = async (req, res, next) => {
     
     try {
       const decoded = verifyAccessToken(token);
-      const user = await User.findById(decoded.userId).select('following');
+      const user = await User.findById(decoded.userId)
+      .populate('following', 'username profilePic')
+      .populate('followers', 'username profilePic');
       
       if (!user) {
         return res.status(401).json({

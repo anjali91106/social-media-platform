@@ -220,7 +220,9 @@ const getFeed = async (req, res, next) => {
       
       // Add follow status for the post author
       if (postObj.userId && req.user) {
-        postObj.userId.isFollowing = req.user.following.includes(postObj.userId._id);
+        postObj.userId.isFollowing = req.user.following.some(followId => 
+          followId.toString() === postObj.userId._id.toString()
+        );
       }
       
       return postObj;
@@ -306,7 +308,9 @@ const getAllPosts = async (req, res, next) => {
       
       // Add follow status for the post author
       if (postObj.userId && req.user) {
-        postObj.userId.isFollowing = req.user.following.includes(postObj.userId._id);
+        postObj.userId.isFollowing = req.user.following.some(followId => 
+          followId.toString() === postObj.userId._id.toString()
+        );
       }
       
       // Add counts that are missing from populate
