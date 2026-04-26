@@ -1,0 +1,26 @@
+# Robots.txt
+# SEO optimization for search engine crawlers
+
+User-agent: *
+Allow: /
+
+# Block access to admin areas and sensitive files
+Disallow: /admin/
+Disallow: /api/
+Disallow: /socket.io/
+Disallow: /*.json$
+Disallow: /*?*$
+Disallow: /login
+Disallow: /register
+Disallow: /settings
+
+# Allow access to static assets
+Allow: /assets/
+Allow: /static/
+Allow: /images/
+
+# Sitemap location
+Sitemap: https://your-domain.com/sitemap.xml
+
+# Crawl delay (optional, adjust based on server capacity)
+Crawl-delay: 1
