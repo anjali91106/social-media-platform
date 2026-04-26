@@ -1,0 +1,174 @@
+# Social Media Platform Architecture Diagram
+
+## High-Level Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                    USER LAYER                                                  │
+├─────────────────┬─────────────────┬─────────────────┬─────────────────────────────────────────────────┤
+│   Web Browser   │  Mobile Browser  │  Desktop App    │                                          │
+│   (React SPA)   │   (Responsive)  │   (Future)      │                                          │
+└─────────────────┴─────────────────┴─────────────────┴─────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                   CDN LAYER                                                   │
+├─────────────────┬─────────────────┬─────────────────┬─────────────────────────────────────────────────┤
+│  Cloudflare CDN │   Static Assets │   SEO Files     │                                          │
+│  (Global Edge)  │  (CSS/JS/Images) │ (robots.txt)    │                                          │
+└─────────────────┴─────────────────┴─────────────────┴─────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                              LOAD BALANCER (NGINX)                                            │
+├─────────────────────────────────────────────────────────────────────────────────────────────────┤
+│  • SSL Termination  • Rate Limiting  • CORS  • Gzip Compression  • Static File Serving        │
+└─────────────────────────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                    ┌───────────────┴───────────────┐
+                    ▼                               ▼
+┌─────────────────────────────┐   ┌─────────────────────────────────────────────────────────────┐
+│        FRONTEND LAYER        │   │                    BACKEND LAYER                          │
+├─────────────────────────────┤   ├─────────────────────────────────────────────────────────────┤
+│  React Application (Port 3000)│   │  API Gateway (Express.js - Port 5000)                      │
+│  ├─ AuthContext              │   ├─ Authentication Middleware                                   │
+│  ├─ Pages (Lazy Loaded)      │   ├─ Rate Limiting                                             │
+│  │   • HomeFeed              │   ├─ CORS Management                                          │
+│  │   • Profile               │   └─ Request Validation                                       │
+│  │   • Search                │           │                                                  │
+│  │   • Settings              │           ▼                                                  │
+│  ├─ Components               │   ┌─────────────────────────────────────────────────────┐   │
+│  │   • OptimizedImage        │   │              CORE SERVICES                          │   │
+│  │   • SEOHead               │   ├─────────────────────────────────────────────────────┤   │
+│  │   • Comments              │   │  • Auth Service     • User Service                      │   │
+│  │   • Navigation            │   │  • Post Service     • Upload Service                    │   │
+│  ├─ Utils                    │   │  • Notification Service                                   │   │
+│  │   • Performance Monitor   │   └─────────────────────────────────────────────────────┘   │
+│  │   • API Service           │           │                                                  │
+│  └─ State Management         │           ▼                                                  │
+│     ├─ Local Storage          │   ┌─────────────────────────────────────────────────────┐   │
+│     └─ Session Cache          │   │             REAL-TIME LAYER                         │   │
+└─────────────────────────────┘   ├─────────────────────────────────────────────────────┤   │
+                                    │  • Socket.io Server (WebSocket)                      │   │
+                                    │  • Event Handlers                                        │   │
+                                    │  • Room Management                                      │   │
+                                    │  • Typing Indicators                                    │   │
+                                    └─────────────────────────────────────────────────────┘   │
+                                                │                                          │
+                                                ▼                                          │
+┌─────────────────────────────────────────────────────────────────────────────────────────┐   │
+│                              DATABASE LAYER                                                  │   │
+├─────────────────────────────────────────────────────────────────────────────────────────┤   │
+│  ┌─────────────────────────┐  ┌─────────────────────────┐  ┌─────────────────────────┐   │   │
+│  │     MONGODB ATLAS       │  │       REDIS CACHE       │  │      MEMCACHED          │   │   │
+│  │   (Primary Replica)    │  │   (Session Store)       │  │   (API Response Cache)  │   │   │
+│  ├─────────────────────────┤  ├─────────────────────────┤  ├─────────────────────────┤   │   │
+│  │ • Users Collection      │  │ • JWT Tokens            │  │ • Static Data            │   │   │
+│  │ • Posts Collection      │  │ • User Sessions         │  │ • Query Results          │   │   │
+│  │ • Comments Collection   │  │ • API Cache             │  │ • Feed Data              │   │   │
+│  │ • Follow Relations       │  │ • Rate Limiting         │  │ • Popular Content       │   │   │
+│  └─────────────────────────┘  └─────────────────────────┘  └─────────────────────────┘   │   │
+└─────────────────────────────────────────────────────────────────────────────────────────┘   │
+                                                │                                          │
+                                                ▼                                          │
+┌─────────────────────────────────────────────────────────────────────────────────────────┐   │
+│                            EXTERNAL SERVICES                                                  │   │
+├─────────────────────────────────────────────────────────────────────────────────────────┤   │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐   │   │
+│  │   CLOUDINARY     │  │   EMAIL SERVICE │  │   ANALYTICS     │  │   MONITORING    │   │   │
+│  │  (Image Storage) │  │ (Notifications) │  │ (Performance)   │  │ (New Relic)    │   │   │
+│  │ • Image Upload  │  │ • Welcome Emails│  │ • User Metrics   │  │ • Error Tracking│   │   │
+│  │ • Optimization  │  │ • Password Reset│  │ • Core Web Vitals│  │ • Uptime Monitor│   │   │
+│  │ • CDN Delivery  │  │ • Activity Feed │  │ • A/B Testing    │  │ • Alert System  │   │   │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  └─────────────────┘   │   │
+└─────────────────────────────────────────────────────────────────────────────────────────┘   │
+                                                │                                          │
+                                                ▼                                          │
+┌─────────────────────────────────────────────────────────────────────────────────────────┐   │
+│                              DEVOPS & CI/CD                                                    │   │
+├─────────────────────────────────────────────────────────────────────────────────────────┤   │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐   │   │
+│  │   GITHUB        │  │ GITHUB ACTIONS  │  │     DOCKER       │  │   KUBERNETES    │   │   │
+│  │ (Source Control)│  │ (CI/CD Pipeline) │  │ (Containers)     │  │ (Orchestration) │   │   │
+│  │ • Git Repository│  │ • Automated Tests │  │ • Multi-stage    │  │ • Auto-scaling   │   │   │
+│  │ • Branch Strategy│  │ • Build & Deploy │  │   Builds         │  │ • Load Balancing │   │   │
+│  │ • Code Review   │  │ • Security Scan  │  │ • Image Registry │  │ • Health Checks  │   │   │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  └─────────────────┘   │   │
+└─────────────────────────────────────────────────────────────────────────────────────────┘   │
+```
+
+## Data Flow Diagram
+
+```
+┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
+│  USER    │───▶│ FRONTEND │───▶│  API    │───▶│  AUTH   │───▶│ MONGODB │───▶│  REDIS  │
+│ (Browser)│    │ (React) │    │ Gateway │    │ Service │    │ (Atlas) │    │ (Cache) │
+└─────────┘    └─────────┘    └─────────┘    └─────────┘    └─────────┘    └─────────┘
+       │                │                │                │                │                │
+       │                │                │                │                │                │
+       │                │                ▼                ▼                ▼                ▼
+       │                │         ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
+       │                │         │  JWT    │    │  USER   │    │  POST   │    │SESSION  │
+       │                │         │ TOKENS  │    │ PROFILE │    │ CONTENT │    │  STORE  │
+       │                │         └─────────┘    └─────────┘    └─────────┘    └─────────┘
+       │                │                │                │                │                │
+       │                │                │                │                │                │
+       │                │                ▼                ▼                ▼                ▼
+       │                │         ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
+       │                │         │  TOKEN  │    │  FOLLOW  │    │  MEDIA  │    │  CACHE  │
+       │                │         │  VALID  │    │ RELATIONS│    │  FILES  │    │  DATA   │
+       │                │         └─────────┘    └─────────┘    └─────────┘    └─────────┘
+```
+
+## Real-time Communication Flow
+
+```
+┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
+│  USER 1 │◄──►│ SOCKET  │◄──►│  EVENT  │◄──►│  USER 2 │◄──►│ SOCKET  │
+│ (Client)│    │ SERVER  │    │ HANDLER │    │ (Client)│    │ SERVER  │
+└─────────┘    └─────────┘    └─────────┘    └─────────┘    └─────────┘
+       │                │                │                │                │
+       │                │                │                │                │
+       │                ▼                ▼                ▼                ▼
+       │         ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
+       │         │  ROOM   │    │  LIKE   │    │COMMENT  │    │  TYPING │
+       │         │MANAGEMENT│    │EVENTS  │    │EVENTS  │    │EVENTS  │
+       │         └─────────┘    └─────────┘    └─────────┘    └─────────┘
+```
+
+## Security Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│                              SECURITY LAYERS                                              │
+├─────────────────────────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐   │
+│  │   NETWORK LAYER │  │  APPLICATION LAYER│  │   DATA LAYER   │  │ INFRASTRUCTURE  │   │
+│  │                 │  │                 │  │                 │  │     LAYER      │   │
+│  │ • SSL/TLS       │  │ • JWT Auth      │  │ • Encryption    │  │ • Firewalls     │   │
+│  │ • Firewalls     │  │ • Input Validation│  │ • Hashed Passwords│  │ • VPN Access    │   │
+│  │ • DDoS Protection│  │ • Rate Limiting  │  │ • Access Control │  │ • Security Groups│   │
+│  │ • CDN Security  │  │ • CORS Policy   │  │ • Audit Logs    │  │ • IAM Roles     │   │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  └─────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+## Performance Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│                            PERFORMANCE OPTIMIZATIONS                                        │
+├─────────────────────────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐   │
+│  │   FRONTEND       │  │    BACKEND       │  │    DATABASE      │  |   INFRASTRUCTURE  │   │
+│  │                 │  │                 │  │                 │  |                 │   │
+│  │ • Lazy Loading  │  │ • Response Cache │  │ • Indexing      │  | • Load Balancing │   │
+│  │ • Code Splitting │  │ • Query Optimize │  │ • Sharding      │  | • Auto-scaling   │   │
+│  │ • Image Optimize│  │ • Connection Pool│  │ • Replication   │  | • CDN Distribution│   │
+│  │ • Bundle Minify │  │ • Compression   │  │ • Caching Layer │  | • Edge Computing │   │
+│  │ • Service Worker│  │ • Async Processing│  │ • Performance   │  | • Resource Limits │   │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  └─────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+This architecture diagram illustrates the complete social media platform with all major components, data flows, security layers, and performance optimizations. The system is designed for scalability, high availability, and optimal performance.
