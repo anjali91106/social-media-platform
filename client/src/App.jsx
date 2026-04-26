@@ -1,14 +1,23 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navigation from './components/Navigation';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import HomeFeed from './pages/HomeFeed';
-import Profile from './pages/Profile';
-import SearchResults from './pages/SearchResults';
-import CreatePostPage from './pages/CreatePostPage';
-import SettingsPage from './pages/SettingsPage';
+
+// Lazy load pages for better performance
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const HomeFeed = lazy(() => import('./pages/HomeFeed'));
+const Profile = lazy(() => import('./pages/Profile'));
+const SearchResults = lazy(() => import('./pages/SearchResults'));
+const CreatePostPage = lazy(() => import('./pages/CreatePostPage'));
+const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+
+// Loading component for lazy loaded components
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+  </div>
+);
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -51,7 +60,9 @@ function App() {
               path="/login"
               element={
                 <PublicRoute>
-                  <Login />
+                  <Suspense fallback={<PageLoader />}>
+                    <Login />
+                  </Suspense>
                 </PublicRoute>
               }
             />
@@ -59,7 +70,9 @@ function App() {
               path="/register"
               element={
                 <PublicRoute>
-                  <Register />
+                  <Suspense fallback={<PageLoader />}>
+                    <Register />
+                  </Suspense>
                 </PublicRoute>
               }
             />
@@ -71,7 +84,9 @@ function App() {
                 <ProtectedRoute>
                   <>
                     <Navigation />
-                    <HomeFeed />
+                    <Suspense fallback={<PageLoader />}>
+                      <HomeFeed />
+                    </Suspense>
                   </>
                 </ProtectedRoute>
               }
@@ -82,7 +97,9 @@ function App() {
                 <ProtectedRoute>
                   <>
                     <Navigation />
-                    <HomeFeed />
+                    <Suspense fallback={<PageLoader />}>
+                      <HomeFeed />
+                    </Suspense>
                   </>
                 </ProtectedRoute>
               }
@@ -93,7 +110,9 @@ function App() {
                 <ProtectedRoute>
                   <>
                     <Navigation />
-                    <Profile />
+                    <Suspense fallback={<PageLoader />}>
+                      <Profile />
+                    </Suspense>
                   </>
                 </ProtectedRoute>
               }
@@ -104,7 +123,9 @@ function App() {
                 <ProtectedRoute>
                   <>
                     <Navigation />
-                    <Profile />
+                    <Suspense fallback={<PageLoader />}>
+                      <Profile />
+                    </Suspense>
                   </>
                 </ProtectedRoute>
               }
@@ -117,7 +138,9 @@ function App() {
                 <ProtectedRoute>
                   <>
                     <Navigation />
-                    <CreatePostPage />
+                    <Suspense fallback={<PageLoader />}>
+                      <CreatePostPage />
+                    </Suspense>
                   </>
                 </ProtectedRoute>
               }
@@ -130,7 +153,9 @@ function App() {
                 <ProtectedRoute>
                   <>
                     <Navigation />
-                    <SettingsPage />
+                    <Suspense fallback={<PageLoader />}>
+                      <SettingsPage />
+                    </Suspense>
                   </>
                 </ProtectedRoute>
               }
@@ -143,7 +168,9 @@ function App() {
                 <ProtectedRoute>
                   <>
                     <Navigation />
-                    <SearchResults />
+                    <Suspense fallback={<PageLoader />}>
+                      <SearchResults />
+                    </Suspense>
                   </>
                 </ProtectedRoute>
               }

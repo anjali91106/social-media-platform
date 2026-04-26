@@ -4,6 +4,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
+const compression = require('compression');
 const connectDB = require('./config/database');
 const createIndexes = require('./config/indexes');
 const errorHandler = require('./middlewares/errorHandler');
@@ -28,6 +29,7 @@ const limiter = rateLimit({
   }
 });
 
+app.use(compression());
 app.use(helmet());
 app.use(limiter);
 app.use(cors({

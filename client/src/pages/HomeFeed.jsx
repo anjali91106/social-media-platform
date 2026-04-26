@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { postsAPI } from '../services/api';
 import { usersAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import Comments from '../components/Comments';
+import OptimizedImage from '../components/OptimizedImage';
 import socketService from '../services/socket';
 
 const HomeFeed = () => {
@@ -18,7 +19,7 @@ const HomeFeed = () => {
   const observer = useRef();
   const lastPostRef = useRef();
 
-  const fetchPosts = async (pageNum = 1, append = false) => {
+  const fetchPosts = useCallback(async (pageNum = 1, append = false) => {
     try {
       if (!append) setLoading(true);
       let response;
@@ -41,7 +42,7 @@ const HomeFeed = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeTab]);
 
   // Infinite scroll observer
   const lastPostElementRef = useCallback(node => {
@@ -295,7 +296,7 @@ useEffect(() => {
           {post.media.length === 1 ? (
             <div className="mb-2">
               {post.media[0].type === 'image' ? (
-                <img
+                <OptimizedImage
                   src={post.media[0].url}
                   alt="Post image"
                   className="w-full rounded-lg cursor-pointer hover:opacity-95 transition-opacity"
@@ -316,7 +317,7 @@ useEffect(() => {
               {post.media.map((media, index) => (
                 <div key={index} className={index === 0 && post.media.length > 2 ? 'col-span-2 row-span-2' : ''}>
                   {media.type === 'image' ? (
-                    <img
+                    <OptimizedImage
                       src={media.url}
                       alt={`Post image ${index + 1}`}
                       className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-95 transition-opacity"

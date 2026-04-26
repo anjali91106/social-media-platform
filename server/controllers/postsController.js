@@ -203,29 +203,34 @@ const getFeed = async (req, res, next) => {
       });
     }
 
+    // Use lean() for better performance and select only needed fields
     const posts = await Post.find({ userId: { $in: followingIds } })
+      .lean()
+      .select('userId caption media tags location createdAt likeCount commentCount')
       .populate('userId', 'username profilePic')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
 
-    const totalPosts = await Post.countDocuments({ userId: { $in: followingIds } });
+    // Get total count in parallel for better performance
+    const [totalPosts] = await Promise.all([
+      Post.countDocuments({ userId: { $in: followingIds } })
+    ]);
 
     const postsWithOptimizedMedia = posts.map(post => {
-      const postObj = post.toObject();
       // For base64 images, just keep the original URL, no need for optimizedUrls
-      postObj.media = post.media.map(item => ({
-        ...item.toObject()
+      post.media = post.media.map(item => ({
+        ...item
       }));
       
       // Add follow status for the post author
-      if (postObj.userId && req.user) {
-        postObj.userId.isFollowing = req.user.following.some(followId => 
-          followId.toString() === postObj.userId._id.toString()
+      if (post.userId && req.user) {
+        post.userId.isFollowing = req.user.following.some(followId => 
+          followId.toString() === post.userId._id.toString()
         );
       }
       
-      return postObj;
+      return post;
     });
 
     res.status(200).json({
@@ -291,32 +296,38 @@ const getAllPosts = async (req, res, next) => {
     const limit = Math.min(parseInt(req.query.limit) || 5, 10); // Max 10 posts, default 5
     const skip = (page - 1) * limit;
 
+    // Use lean() for better performance and select only needed fields
     const posts = await Post.find()
+      .lean()
+      .select('userId caption media tags location createdAt likeCount commentCount')
       .populate('userId', 'username profilePic')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
 
-    const totalPosts = await Post.countDocuments();
+    // Get total count in parallel for better performance
+    const [totalPosts] = await Promise.all([
+      Post.countDocuments()
+    ]);
 
+    // Process posts with follow status
     const postsWithOptimizedMedia = posts.map(post => {
-      const postObj = post.toObject();
       // For base64 images, just keep the original URL, no need for optimizedUrls
-      postObj.media = post.media.map(item => ({
-        ...item.toObject()
+      post.media = post.media.map(item => ({
+        ...item
       }));
       
       // Add follow status for the post author
-      if (postObj.userId && req.user) {
-        postObj.userId.isFollowing = req.user.following.some(followId => 
-          followId.toString() === postObj.userId._id.toString()
+      if (post.userId && req.user) {
+        post.userId.isFollowing = req.user.following.some(followId => 
+          followId.toString() === post.userId._id.toString()
         );
       }
       
-      // Add counts that are missing from populate
-      postObj.likeCount = post.likeCount || 0;
-      postObj.commentCount = post.commentCount || 0;
-      return postObj;
+      // Ensure counts are present
+      post.likeCount = post.likeCount || 0;
+      post.commentCount = post.commentCount || 0;
+      return post;
     });
 
     res.status(200).json({
@@ -407,6 +418,7 @@ const searchPosts = async (req, res, next) => {
       });
     }
 
+    // Use lean() for better performance and select only needed fields
     const posts = await Post.find({
       $or: [
         { caption: { $regex: q, $options: 'i' } },
@@ -414,23 +426,48 @@ const searchPosts = async (req, res, next) => {
         { location: { $regex: q, $options: 'i' } }
       ]
     })
+      .lean()
+      .select('userId caption media tags location createdAt likeCount commentCount')
       .populate('userId', 'username profilePic')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
 
-    const totalPosts = await Post.countDocuments({
-      $or: [
-        { caption: { $regex: q, $options: 'i' } },
-        { tags: { $in: [new RegExp(q, 'i')] } },
-        { location: { $regex: q, $options: 'i' } }
-      ]
+    // Get total count in parallel for better performance
+    const [totalPosts] = await Promise.all([
+      Post.countDocuments({
+        $or: [
+          { caption: { $regex: q, $options: 'i' } },
+          { tags: { $in: [new RegExp(q, 'i')] } },
+          { location: { $regex: q, $options: 'i' } }
+        ]
+      })
+    ]);
+
+    // Process posts with follow status and optimized media
+    const postsWithOptimizedMedia = posts.map(post => {
+      // For base64 images, just keep the original URL, no need for optimizedUrls
+      post.media = post.media.map(item => ({
+        ...item
+      }));
+      
+      // Add follow status for the post author
+      if (post.userId && req.user) {
+        post.userId.isFollowing = req.user.following.some(followId => 
+          followId.toString() === post.userId._id.toString()
+        );
+      }
+      
+      // Ensure counts are present
+      post.likeCount = post.likeCount || 0;
+      post.commentCount = post.commentCount || 0;
+      return post;
     });
 
     res.status(200).json({
       success: true,
       data: {
-        posts,
+        posts: postsWithOptimizedMedia,
         pagination: {
           currentPage: page,
           totalPages: Math.ceil(totalPosts / limit),

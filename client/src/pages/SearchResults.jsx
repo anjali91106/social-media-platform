@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { postsAPI } from '../services/api';
 import { usersAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import OptimizedImage from '../components/OptimizedImage';
 
 const SearchResults = () => {
   const { user } = useAuth();
@@ -149,8 +150,8 @@ const SearchResults = () => {
       
       {post.media && post.media.length > 0 && (
         <div className="mb-3">
-          <img
-            src={post.media[0]}
+          <OptimizedImage
+            src={post.media[0].url}
             alt="Post image"
             className="w-full rounded-lg"
           />
